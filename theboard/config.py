@@ -5,7 +5,7 @@ import logging.config
 from colorama import Fore, Style, init as init_colorama
 
 # Default config for autogen agents
-LLM_CONFIG = {"config_list": [{"model": "gpt-4", "api_key": os.environ["OPENAI_API_KEY"]}]}
+LLM_CONFIG = {"config_list": [{"model": "gpt-4o", "api_key": os.environ["OPENAI_API_KEY"]}]}
 
 # Logging configuration
 init_colorama(autoreset=True)
