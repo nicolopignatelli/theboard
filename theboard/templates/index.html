@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>The Board</title>
+</head>
+<body>
+    <header>
+        <h1>The Board</h1>
+    </header>
+    <main>
+        <div id="request-container">
+            <textarea id="request"></textarea>
+            <input id="submit-request" type="button" value="Submit to the board" />
+        </div>
+        <div>
+            <h3 id="matter"></h3>
+            <ul id="board-response"></ul>
+        </div>
+    </main>
+    <script>
+        var socket;
+
+        function openSocket() {
+            socket = new WebSocket("ws://localhost:8080/ws");
+
+            socket.onopen = function() {
+                console.log("WebSocket connection opened");
+                var messages = document.getElementById('board-response');
+                messages.innerHTML = '';
+            };
+
+            socket.onmessage = function(event) {
+                message = JSON.parse(event.data)
+                messageDom = "<ul><li>Type: " + message["type"] + "</li><li>Data: " + JSON.stringify(message["data"]) + "</li>";
+                var messages = document.getElementById('board-response');
+                var message = document.createElement('li');
+                message.innerHTML = messageDom;
+                messages.appendChild(message);
+            };
+
+            socket.onclose = function() {
+                console.log("WebSocket connection closed");
+            };
+
+            socket.onerror = function(error) {
+                console.log("WebSocket error:", error);
+            };
+        }
+
+        function sendMessage(message, callback) {
+            waitForConnection(function() {
+                console.log("Sending message:", message);
+                socket.send(message);
+                if (typeof callback !== 'undefined') {
+                    callback();
+                }
+            }, 100);
+        }
+
+        function waitForConnection(callback, interval) {
+            if (socket.readyState === 1) {
+                callback();
+            } else {
+                setTimeout(function() {
+                    waitForConnection(callback, interval);
+                }, interval);
+            }
+        }
+
+        document.getElementById('submit-request').addEventListener("click", function(event) {
+            if (!socket || socket.readyState !== 1) {
+                openSocket();
+            }
+            var input = document.getElementById("request");
+            sendMessage(input.value);
+            document.getElementById('matter').textContent = input.value;
+            input.value = '';
+            event.preventDefault();
+        });
+    </script>
+</body>
+</html>
